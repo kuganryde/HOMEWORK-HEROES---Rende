@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Homework Hero - School-Parent App(Dual)",
+  "description": "A robust synchronization platform for Sekolah Jenis Kebangsaan (Tamil) Bandar Mahkota Cheras, bridging the gap between teachers and parents with AI-powered homework tracking.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
