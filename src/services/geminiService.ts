@@ -95,6 +95,27 @@ export const chatWithAssistant = async (message: string, context: string, studen
   }
 };
 
+export const generateProgressSummary = async (studentName: string, xp: number, completedCount: number, subjectStats: string) => {
+  try {
+    const response = await fetch('/api/gemini/generate-content', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-app-applet-request': 'true',
+      },
+      body: JSON.stringify({
+        model: 'gemini-3-flash-preview',
+        contents: `Write a short, engaging 3-sentence progress summary for a parent about their child ${studentName}. Mention they have ${xp} XP and have completed ${completedCount} tasks recently. The child's subject breakdown is roughly: ${subjectStats}. Be encouraging.`,
+      }),
+    });
+    const data = await response.json();
+    return data.text;
+  } catch (error) {
+    console.error("Gemini Summary Error:", error);
+    return `${studentName} is making steady progress! Keep encouraging them.`;
+  }
+};
+
 export const generateParentTip = async (subject: string, topic: string) => {
   try {
     const response = await fetch('/api/gemini/generate-content', {

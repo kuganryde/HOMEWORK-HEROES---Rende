@@ -12,6 +12,7 @@ import {
   generateHomeworkHints,
   analyzeHomeworkImage,
   generateParentTip,
+  generateProgressSummary,
 } from "@/services/geminiService";
 import {
   ResponsiveContainer,
@@ -39,6 +40,9 @@ import {
   Star,
   ChevronLeft,
   ChevronRight,
+  Gift,
+  Award,
+  Trophy,
 } from "lucide-react";
 import Pagination from "@/components/Pagination";
 import confetti from "canvas-confetti";
@@ -75,8 +79,11 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const [parentTip, setParentTip] = useState<string | null>(null);
   const [loadingTip, setLoadingTip] = useState(false);
 
+  const [progressSummary, setProgressSummary] = useState<string | null>(null);
+  const [loadingSummary, setLoadingSummary] = useState(false);
+
   // Active Tab
-  const [activeTab, setActiveTab] = useState<"homework" | "stats" | "logs">(
+  const [activeTab, setActiveTab] = useState<"homework" | "stats" | "rewards" | "logs">(
     "homework",
   );
 
@@ -173,6 +180,15 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
     const tip = await generateParentTip(topSubject, "regular practice");
     setParentTip(tip);
     setLoadingTip(false);
+  };
+
+  const fetchProgressSummary = async () => {
+    if (!selectedStudent) return;
+    setLoadingSummary(true);
+    const subjectStatsStr = subjectData.map(s => `${s.name}: ${s.count}`).join(', ');
+    const summary = await generateProgressSummary(selectedStudent.name, selectedStudent.xp, stats.completed, subjectStatsStr || 'General subjects');
+    setProgressSummary(summary);
+    setLoadingSummary(false);
   };
 
   const stats = useMemo(() => {
@@ -353,6 +369,16 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
           }`}
         >
           <TrendingUp size={16} /> Journey & Stats
+        </button>
+        <button
+          onClick={() => setActiveTab("rewards")}
+          className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all flex items-center gap-2 ${
+            activeTab === "rewards"
+              ? "bg-white text-slate-800 shadow-sm"
+              : "text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          <Gift size={16} /> Rewards
         </button>
         <button
           onClick={() => setActiveTab("logs")}
@@ -836,6 +862,27 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
                       </div>
                     </div>
 
+                    {/* AI Progress Summary */}
+                    <div className="pt-6 border-t border-white/40">
+                      <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <Sparkles size={14} className="text-bmc-yellow" />
+                        AI Progress Summary
+                      </h4>
+                      {progressSummary ? (
+                        <div className="p-4 bg-blue-50 text-blue-900 rounded-2xl border border-blue-100 text-sm leading-relaxed">
+                          {progressSummary}
+                        </div>
+                      ) : (
+                         <button
+                           onClick={fetchProgressSummary}
+                           disabled={loadingSummary}
+                           className="w-full py-3 bg-white border-2 border-slate-200 text-slate-600 rounded-xl text-xs font-black shadow-sm active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2 hover:bg-slate-50 hover:border-bmc-blue"
+                         >
+                           {loadingSummary ? "Generating Summary..." : "Generate AI Summary Report"}
+                         </button>
+                      )}
+                    </div>
+
                     <div className="pt-4 border-t border-white/40">
                       <div className="flex items-center gap-2 text-emerald-600">
                         <TrendingUp size={16} />
@@ -857,6 +904,57 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Rewards Tab Content */}
+        {activeTab === "rewards" && (
+          <div className="lg:col-span-3 space-y-6">
+            <div className="bg-white/70 backdrop-blur-md rounded-3xl shadow-sm border border-white/40 overflow-hidden">
+               <div className="p-6 border-b border-white/40 bg-amber-50/50">
+                <h3 className="font-bold text-lg flex items-center gap-2 text-amber-600">
+                  <Trophy size={20} />
+                  Rewards & Achievements
+                </h3>
+                <p className="text-sm text-slate-600 mt-1">
+                  Keep encouraging {selectedStudent?.name} to unlock more badges!
+                </p>
+               </div>
+               
+               <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className={`p-4 rounded-2xl flex flex-col items-center justify-center text-center gap-2 border-2 transition-all ${stats.completed >= 1 ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200 opacity-50 grayscale'}`}>
+                    <div className="p-3 bg-amber-100 text-amber-500 rounded-full">
+                      <Star size={32} fill="currentColor" />
+                    </div>
+                    <h4 className="font-bold text-sm text-slate-800">First Steps</h4>
+                    <p className="text-[10px] text-slate-500 uppercase font-black">Complete 1 Task</p>
+                  </div>
+
+                  <div className={`p-4 rounded-2xl flex flex-col items-center justify-center text-center gap-2 border-2 transition-all ${(selectedStudent?.xp || 0) >= 50 ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200 opacity-50 grayscale'}`}>
+                    <div className="p-3 bg-emerald-100 text-emerald-500 rounded-full">
+                      <Award size={32} />
+                    </div>
+                    <h4 className="font-bold text-sm text-slate-800">Rising Star</h4>
+                    <p className="text-[10px] text-slate-500 uppercase font-black">Reach 50 XP</p>
+                  </div>
+
+                  <div className={`p-4 rounded-2xl flex flex-col items-center justify-center text-center gap-2 border-2 transition-all ${(stats.completed) >= 5 ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200 opacity-50 grayscale'}`}>
+                    <div className="p-3 bg-blue-100 text-blue-500 rounded-full">
+                      <CheckCircle size={32} fill="currentColor" />
+                    </div>
+                    <h4 className="font-bold text-sm text-slate-800">Consistent</h4>
+                    <p className="text-[10px] text-slate-500 uppercase font-black">Complete 5 Tasks</p>
+                  </div>
+
+                  <div className={`p-4 rounded-2xl flex flex-col items-center justify-center text-center gap-2 border-2 transition-all ${(selectedStudent?.xp || 0) >= 200 ? 'bg-purple-50 border-purple-200' : 'bg-slate-50 border-slate-200 opacity-50 grayscale'}`}>
+                    <div className="p-3 bg-purple-100 text-purple-500 rounded-full">
+                      <Gift size={32} />
+                    </div>
+                    <h4 className="font-bold text-sm text-slate-800">Overachiever</h4>
+                    <p className="text-[10px] text-slate-500 uppercase font-black">Reach 200 XP</p>
+                  </div>
+               </div>
             </div>
           </div>
         )}
