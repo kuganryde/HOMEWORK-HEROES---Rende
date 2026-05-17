@@ -11,6 +11,7 @@ import { SCHOOL_INFO, RANKS } from "@/constants";
 import {
   generateHomeworkHints,
   analyzeHomeworkImage,
+  generateParentTip,
 } from "@/services/geminiService";
 import {
   ResponsiveContainer,
@@ -71,6 +72,8 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const [analyzing, setAnalyzing] = useState(false);
   const [aiHints, setAiHints] = useState<{ [key: string]: string }>({});
   const [ackToast, setAckToast] = useState<string | null>(null);
+  const [parentTip, setParentTip] = useState<string | null>(null);
+  const [loadingTip, setLoadingTip] = useState(false);
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<"homework" | "stats" | "logs">(
@@ -153,6 +156,39 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
     };
     reader.readAsDataURL(file);
   };
+
+  const subjectData = useMemo(() => {
+    if (!selectedStudent) return [];
+    const subjects: { [key: string]: number } = {};
+    studentHomeworks.forEach((h) => {
+      subjects[h.subject] = (subjects[h.subject] || 0) + 1;
+    });
+    return Object.entries(subjects).map(([name, count]) => ({ name, count }));
+  }, [studentHomeworks, selectedStudent]);
+
+  const fetchParentTip = async () => {
+    if (!selectedStudent || studentHomeworks.length === 0) return;
+    setLoadingTip(true);
+    const topSubject = subjectData[0]?.name || "General learning";
+    const tip = await generateParentTip(topSubject, "regular practice");
+    setParentTip(tip);
+    setLoadingTip(false);
+  };
+
+  const stats = useMemo(() => {
+    if (!selectedStudent) return { total: 0, pending: 0, completed: 0 };
+    const relevantRecords = records.filter(
+      (r) => r.studentId === selectedStudent.id,
+    );
+    return {
+      total: studentHomeworks.length,
+      pending: relevantRecords.filter((r) => r.status === HomeworkStatus.PENDING)
+        .length,
+      completed: relevantRecords.filter(
+        (r) => r.status === HomeworkStatus.COMPLETED,
+      ).length,
+    };
+  }, [selectedStudent, studentHomeworks, records]);
 
   const performanceMetrics = useMemo(() => {
     if (!selectedStudent) return null;
@@ -267,6 +303,28 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
             </div>
           </div>
         )}
+      </div>
+
+      {/* Quick Stats Overview */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white/70 backdrop-blur-md p-4 rounded-2xl border border-white/40 shadow-sm">
+          <p className="text-[10px] font-black uppercase text-slate-400 mb-1">Total Tasks</p>
+          <p className="text-2xl font-black text-slate-800">{stats.total}</p>
+        </div>
+        <div className="bg-white/70 backdrop-blur-md p-4 rounded-2xl border border-white/40 shadow-sm">
+          <p className="text-[10px] font-black uppercase text-amber-500 mb-1">To Do</p>
+          <p className="text-2xl font-black text-amber-600">{stats.pending}</p>
+        </div>
+        <div className="bg-white/70 backdrop-blur-md p-4 rounded-2xl border border-white/40 shadow-sm">
+          <p className="text-[10px] font-black uppercase text-emerald-500 mb-1">Completed</p>
+          <p className="text-2xl font-black text-emerald-600">{stats.completed}</p>
+        </div>
+        <div className="bg-white/70 backdrop-blur-md p-4 rounded-2xl border border-white/40 shadow-sm">
+          <p className="text-[10px] font-black uppercase text-bmc-blue mb-1">Success Rate</p>
+          <p className="text-2xl font-black text-bmc-blue">
+            {stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%
+          </p>
+        </div>
       </div>
 
       {/* Tab Selection Buttons */}
@@ -520,6 +578,31 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
         {activeTab === "homework" && (
           <div className="space-y-6">
             <div className="bg-white/70 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-white/40">
+              <h3 className="font-bold mb-2 flex items-center gap-2 text-slate-800">
+                <Sparkles size={20} className="text-bmc-yellow" />
+                Parent Support AI
+              </h3>
+              <p className="text-[11px] text-slate-500 mb-4 font-medium leading-relaxed">
+                Get quick advice on how to best help {selectedStudent?.name} with their current subjects.
+              </p>
+              
+              {parentTip ? (
+                <div className="p-3 bg-bmc-yellow/10 rounded-xl border border-bmc-yellow/20 text-xs text-slate-700 animate-in fade-in slide-in-from-top-2">
+                  <p className="font-bold text-slate-900 mb-1">Tip for Today:</p>
+                  {parentTip}
+                </div>
+              ) : (
+                <button
+                  onClick={fetchParentTip}
+                  disabled={loadingTip || studentHomeworks.length === 0}
+                  className="w-full py-2.5 bg-slate-900 text-white rounded-xl text-xs font-black shadow-lg shadow-slate-200 active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                >
+                  {loadingTip ? "Generating..." : "Get Parenting Tip"}
+                </button>
+              )}
+            </div>
+
+            <div className="bg-white/70 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-white/40">
               <h3 className="font-bold mb-4 flex items-center gap-2 text-slate-800">
                 <Camera size={20} className="text-bmc-red" />
                 Analyze Homework
@@ -724,6 +807,35 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
                         </AreaChart>
                       </ResponsiveContainer>
                     </div>
+
+                    {/* Subject Breakdown */}
+                    <div className="pt-6 border-t border-white/40">
+                      <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">
+                        Subject Focus
+                      </h4>
+                      <div className="space-y-3">
+                        {subjectData.map((s, idx) => (
+                          <div key={idx} className="space-y-1">
+                            <div className="flex justify-between text-[11px] font-bold text-slate-600">
+                              <span>{s.name}</span>
+                              <span>{s.count} Tasks</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-bmc-blue rounded-full"
+                                style={{
+                                  width: `${(s.count / stats.total) * 100}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                        {subjectData.length === 0 && (
+                          <p className="text-xs text-slate-400 italic">No task data available.</p>
+                        )}
+                      </div>
+                    </div>
+
                     <div className="pt-4 border-t border-white/40">
                       <div className="flex items-center gap-2 text-emerald-600">
                         <TrendingUp size={16} />

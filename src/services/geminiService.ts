@@ -73,3 +73,16 @@ export const chatWithAssistant = async (message: string, context: string, studen
     return "Network error. Please try again.";
   }
 };
+
+export const generateParentTip = async (subject: string, topic: string) => {
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: `Provide 2 sentence piece of advice for a parent to support their child in ${subject} regarding ${topic}. Make it practical and encouraging.`,
+    });
+    return response.text;
+  } catch (error) {
+    console.error("Gemini Tip Error:", error);
+    return "Encourage your child to read daily and celebrate small wins!";
+  }
+};

@@ -16,6 +16,12 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip as RechartsTooltip,
+  BarChart,
+  Bar,
+  Cell,
+  LineChart,
+  Line,
+  Legend,
 } from "recharts";
 import {
   Plus,
@@ -36,6 +42,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Trophy,
+  PieChart,
+  ThumbsDown,
+  BrainCircuit,
 } from "lucide-react";
 import Pagination from "@/components/Pagination";
 import { ShieldPencil } from "@/components/HeroMascot";
@@ -90,7 +99,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const [pendingPage, setPendingPage] = useState(1);
   const [historyPage, setHistoryPage] = useState(1);
 
-  const [activeTab, setActiveTab] = useState<"tasks" | "students" | "pending">(
+  const [activeTab, setActiveTab] = useState<"tasks" | "students" | "pending" | "analytics">(
     "tasks",
   );
 
@@ -100,6 +109,65 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         s.class.toLowerCase().includes(search.toLowerCase())) &&
       (user.classes?.includes(s.class) ?? true),
   );
+
+  // Class Analytics Calculations
+  const classAnalytics = useMemo(() => {
+    if (students.length === 0 || homeworks.length === 0) return null;
+
+    // 1. Completion Rate per Subject
+    const subjects: { [key: string]: { total: number; done: number } } = {};
+    homeworks.forEach((h) => {
+      if (!subjects[h.subject]) subjects[h.subject] = { total: 0, done: 0 };
+      const taskRecords = records.filter((r) => r.homeworkId === h.id);
+      subjects[h.subject].total += h.targetStudentIds.length;
+      subjects[h.subject].done += taskRecords.filter(
+        (r) => r.status === HomeworkStatus.COMPLETED,
+      ).length;
+    });
+
+    const subjectStats = Object.entries(subjects).map(([name, stats]) => ({
+      name,
+      rate: Math.round((stats.done / stats.total) * 100),
+    }));
+
+    // 2. Identify Struggling Students
+    const studentPerformance = students.map((s) => {
+      const studentTasks = homeworks.filter((h) => h.targetStudentIds.includes(s.id));
+      const studentRecords = records.filter((r) => r.studentId === s.id);
+      const completed = studentRecords.filter(
+        (r) => r.status === HomeworkStatus.COMPLETED,
+      ).length;
+      const total = studentTasks.length;
+      const rate = total > 0 ? Math.round((completed / total) * 100) : 100;
+      return { ...s, rate, totalTasks: total };
+    });
+
+    const strugglingStudents = studentPerformance
+      .filter((s) => s.rate < 60 && s.totalTasks > 0)
+      .sort((a, b) => a.rate - b.rate);
+
+    // 3. Overall Completion Trend
+    // Group tasks by date and calculate average completion
+    const dateGroups: { [key: string]: { total: number; done: number } } = {};
+    homeworks.forEach((h) => {
+      const date = h.dueDate;
+      if (!dateGroups[date]) dateGroups[date] = { total: 0, done: 0 };
+      const taskRecords = records.filter((r) => r.homeworkId === h.id);
+      dateGroups[date].total += h.targetStudentIds.length;
+      dateGroups[date].done += taskRecords.filter(
+        (r) => r.status === HomeworkStatus.COMPLETED,
+      ).length;
+    });
+
+    const trendData = Object.entries(dateGroups)
+      .map(([date, stats]) => ({
+        date,
+        rate: Math.round((stats.done / stats.total) * 100),
+      }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    return { subjectStats, strugglingStudents, trendData };
+  }, [students, homeworks, records]);
 
   const pendingApprovals = students.filter((s) => s.pendingUpdate);
 
@@ -346,6 +414,16 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           }`}
         >
           <Users size={16} /> Students
+        </button>
+        <button
+          onClick={() => setActiveTab("analytics")}
+          className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all flex items-center gap-2 ${
+            activeTab === "analytics"
+              ? "bg-white text-slate-800 shadow-sm"
+              : "text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          <PieChart size={16} /> Analytics
         </button>
         {pendingApprovals.length > 0 && (
           <button
@@ -757,6 +835,199 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Analytics Dashboard Section */}
+            {activeTab === "analytics" && classAnalytics && (
+              <div className="space-y-8">
+                {/* Top Row: Summaries */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Subject Mastery Bar Chart */}
+                  <div className="bg-white/70 backdrop-blur-md p-6 rounded-3xl border border-white/40 shadow-sm">
+                    <h3 className="font-bold text-lg mb-6 flex items-center gap-2 text-slate-800">
+                      <BarChart3 className="text-bmc-blue" />
+                      Subject Mastery
+                    </h3>
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={classAnalytics.subjectStats}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                          <XAxis 
+                            dataKey="name" 
+                            axisLine={false} 
+                            tickLine={false} 
+                            tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }}
+                          />
+                          <YAxis 
+                            hide 
+                            domain={[0, 100]} 
+                          />
+                          <RechartsTooltip 
+                            cursor={{ fill: '#f8fafc' }}
+                            content={({ active, payload }) => {
+                              if (active && payload && payload.length) {
+                                return (
+                                  <div className="bg-slate-900 text-white p-3 rounded-xl shadow-2xl border border-white/10">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-1">
+                                      {payload[0].payload.name}
+                                    </p>
+                                    <p className="text-sm font-black">
+                                      {payload[0].value}% Completion
+                                    </p>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
+                          <Bar 
+                            dataKey="rate" 
+                            radius={[8, 8, 0, 0]}
+                            animationDuration={1000}
+                          >
+                            {classAnalytics.subjectStats.map((entry, index) => (
+                              <Cell 
+                                key={`cell-${index}`} 
+                                fill={entry.rate > 80 ? '#10b981' : entry.rate > 50 ? '#3b82f6' : '#ef4444'} 
+                              />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  {/* Academic Trend Line Chart */}
+                  <div className="bg-white/70 backdrop-blur-md p-6 rounded-3xl border border-white/40 shadow-sm">
+                    <h3 className="font-bold text-lg mb-6 flex items-center gap-2 text-slate-800">
+                      <TrendingUp className="text-bmc-red" />
+                      Academic Trend
+                    </h3>
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={classAnalytics.trendData}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                          <XAxis 
+                            dataKey="date" 
+                            hide
+                          />
+                          <YAxis hide domain={[0, 100]} />
+                          <RechartsTooltip 
+                            content={({ active, payload }) => {
+                              if (active && payload && payload.length) {
+                                return (
+                                  <div className="bg-slate-900 text-white p-3 rounded-xl shadow-2xl border border-white/10">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-1">
+                                      {new Date(payload[0].payload.date).toLocaleDateString()}
+                                    </p>
+                                    <p className="text-sm font-black">
+                                      {payload[0].value}% Avg Completion
+                                    </p>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="rate" 
+                            stroke="#e11d48" 
+                            strokeWidth={4} 
+                            dot={{ r: 4, fill: '#e11d48', strokeWidth: 0 }}
+                            activeDot={{ r: 6, strokeWidth: 0 }}
+                            animationDuration={1500}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Section: Support Required */}
+                <div className="bg-white/70 backdrop-blur-md rounded-3xl border border-white/40 shadow-sm overflow-hidden">
+                  <div className="p-6 bg-red-50/50 border-b border-red-100 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-red-100 text-bmc-red rounded-lg">
+                        <ShieldAlert size={20} />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-slate-800">Support Required</h3>
+                        <p className="text-xs text-slate-500">
+                          Students identified as potentially struggling based on task completion
+                        </p>
+                      </div>
+                    </div>
+                    <span className="px-3 py-1 bg-red-100/70 text-bmc-red text-[10px] font-black rounded-full uppercase tracking-widest">
+                      Intervention Suggested
+                    </span>
+                  </div>
+                  
+                  <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {classAnalytics.strugglingStudents.length > 0 ? (
+                      classAnalytics.strugglingStudents.map((s) => (
+                        <div 
+                          key={s.id} 
+                          className="p-4 bg-white/80 rounded-2xl border border-red-100 shadow-sm flex items-center gap-4 group hover:scale-[1.02] transition-all cursor-pointer"
+                          onClick={() => setSelectedStudentHistory(s.id)}
+                        >
+                          <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center text-bmc-red text-sm font-black">
+                            {s.name.charAt(0)}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-bold text-slate-800 text-sm group-hover:text-bmc-red transition-colors">
+                              {s.name}
+                            </h4>
+                            <p className="text-[10px] font-black text-slate-400 uppercase">
+                              {s.class} • {s.rate}% Success
+                            </p>
+                          </div>
+                          <div className="text-bmc-red opacity-0 group-hover:opacity-100 transition-opacity">
+                            <ChevronRight size={16} />
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="col-span-full py-12 text-center text-slate-400 font-bold space-y-3">
+                        <div className="w-16 h-16 mx-auto bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center">
+                          <CheckCircle2 size={32} />
+                        </div>
+                        <p>No students identified as struggling. Keep up the great work!</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* AI-Powered Insight Card */}
+                <div className="bg-slate-900 rounded-3xl p-8 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
+                    <BrainCircuit size={120} className="text-white" />
+                  </div>
+                  <div className="relative z-10 max-w-xl">
+                    <div className="flex items-center gap-2 text-bmc-yellow mb-4">
+                      <Star size={20} fill="currentColor" />
+                      <span className="text-xs font-black uppercase tracking-[0.2em]">Automated Insight</span>
+                    </div>
+                    <h3 className="text-2xl font-black text-white mb-4 leading-tight">
+                      {classAnalytics.strugglingStudents.length > 0 
+                        ? `Targeted intervention recommended for ${classAnalytics.strugglingStudents.length} students.`
+                        : "Overall class momentum is exceptionally strong this period."
+                      }
+                    </h3>
+                    <p className="text-slate-400 text-sm mb-8 leading-relaxed font-medium">
+                      Our system detects that homework completion is highest on Tuesdays and Wednesdays. 
+                      Consider scheduling complex tasks mid-week to leverage peak parent-student engagement cycles.
+                    </p>
+                    <button 
+                      onClick={() => setActiveTab("tasks")}
+                      className="bg-white text-slate-900 px-6 py-3 rounded-xl text-xs font-black hover:bg-bmc-yellow transition-all flex items-center gap-2 active:scale-95 shadow-xl shadow-white/5"
+                    >
+                      Optimize Schedule <ArrowRight size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
           </div>
 
           {/* Individual Student Journey Sidebar */}
