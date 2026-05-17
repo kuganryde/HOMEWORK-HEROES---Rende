@@ -129,7 +129,7 @@ const App: React.FC = () => {
   };
 
   const handleApproveUpdate = (sid: string, approved: boolean) => {
-    const updated = students.map(s => {
+    let updated = students.map(s => {
       if (s.id === sid && s.pendingUpdate) {
         if (approved) {
           return {
@@ -145,6 +145,12 @@ const App: React.FC = () => {
       }
       return s;
     });
+
+    // Clean up rejected new students
+    if (!approved) {
+      updated = updated.filter(s => !(s.id === sid && s.name === "Pending Approval"));
+    }
+
     setStudents(updated);
     localStorage.setItem('bmc_students', JSON.stringify(updated));
   };

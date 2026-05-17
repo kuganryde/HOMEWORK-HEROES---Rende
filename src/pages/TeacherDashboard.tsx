@@ -106,8 +106,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const filteredStudents = students.filter(
     (s) =>
       (s.name.toLowerCase().includes(search.toLowerCase()) ||
-        s.class.toLowerCase().includes(search.toLowerCase())) &&
-      (user.classes?.includes(s.class) ?? true),
+        s.class.toLowerCase().includes(search.toLowerCase()))
   );
 
   // Class Analytics Calculations

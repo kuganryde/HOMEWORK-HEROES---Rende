@@ -239,7 +239,7 @@ const Settings: React.FC<SettingsProps> = ({ user, students, onProposeUpdate, on
                                   value={profileData.classes}
                                   onChange={e => setProfileData({...profileData, classes: e.target.value})}
                                   className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-bmc-red/30 focus:bg-white transition-all font-bold text-slate-800"
-                                  placeholder="e.g. 1 Valluvar, 2 Valluvar"
+                                  placeholder="e.g. 1 Semmal, 2 Ambal"
                                 />
                               </div>
                             </div>
@@ -562,12 +562,13 @@ const Settings: React.FC<SettingsProps> = ({ user, students, onProposeUpdate, on
                       onChange={e => setFormData({...formData, class: e.target.value})}
                     >
                       <option value="">Select Class</option>
-                      <option value="1 Valluvar">1 Valluvar</option>
-                      <option value="2 Valluvar">2 Valluvar</option>
-                      <option value="3 Valluvar">3 Valluvar</option>
-                      <option value="4 Valluvar">4 Valluvar</option>
-                      <option value="5 Valluvar">5 Valluvar</option>
-                      <option value="6 Valluvar">6 Valluvar</option>
+                      {[1, 2, 3, 4, 5, 6].map(year => (
+                        <optgroup key={year} label={`Year ${year}`}>
+                          <option value={`${year} Semmal`}>{year} Semmal</option>
+                          <option value={`${year} Ambal`}>{year} Ambal</option>
+                          <option value={`${year} Mugil`}>{year} Mugil</option>
+                        </optgroup>
+                      ))}
                     </select>
                   </div>
                   <div>
