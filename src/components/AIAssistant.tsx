@@ -41,31 +41,10 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ context, student, updateStude
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
-    // Check usage limit (skip for teachers)
-    const isTeacher = userRole === UserRole.TEACHER;
-    const usage = JSON.parse(localStorage.getItem('ai_usage') || '{"count": 0, "date": ""}');
-    
-    if (!isTeacher) {
-      const today = new Date().toDateString();
-      if (usage.date !== today) {
-        usage.count = 0;
-        usage.date = today;
-      }
-      if (usage.count >= 3) {
-        setMessages(prev => [...prev, { role: 'ai', text: "You've reached your daily AI usage limit (3/3). Please try again tomorrow!" }]);
-        return;
-      }
-    }
-
     const userMsg = input.trim();
     setInput('');
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setIsLoading(true);
-    
-    if (!isTeacher) {
-      usage.count++;
-      localStorage.setItem('ai_usage', JSON.stringify(usage));
-    }
 
     const response = await chatWithAssistant(userMsg, context, student);
     
