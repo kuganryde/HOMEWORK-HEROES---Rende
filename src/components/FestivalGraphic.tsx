@@ -39,7 +39,7 @@ const FestivalGraphic: React.FC = () => {
         </motion.div>
         
         {/* Tooltip on hover */}
-        <div className="absolute top-full mt-2 right-0 hidden group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl whitespace-nowrap animate-in fade-in zoom-in-95 duration-100">
+        <div className="absolute top-full mt-2 right-0 hidden md:group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
           {festival.message}
           <div className="absolute bottom-full right-6 -mb-1 w-2 h-2 bg-slate-900 rotate-45" />
         </div>

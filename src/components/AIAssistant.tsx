@@ -88,7 +88,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ context, student, updateStude
         <div className="flex items-center gap-4 relative z-10">
           <div className="p-2.5 bg-white/20 rounded-xl group relative">
             <Sparkles size={24} />
-            <div className="absolute bottom-full mb-3 left-0 hidden group-hover:block bg-slate-900 text-white text-[10px] font-bold px-3 py-2 rounded-lg shadow-2xl whitespace-nowrap z-[100] animate-in fade-in duration-100">
+            <div className="absolute bottom-full mb-3 left-0 hidden md:group-hover:block bg-slate-900 text-white text-[10px] font-bold px-3 py-2 rounded-lg shadow-2xl whitespace-nowrap z-[100] pointer-events-none animate-in fade-in duration-100">
               AI Powered by Google Gemini
               <div className="absolute top-full left-4 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
             </div>
@@ -189,7 +189,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ context, student, updateStude
             >
               <Send size={24} />
             </button>
-            <div className="absolute bottom-full mb-3 right-0 hidden group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl whitespace-nowrap z-[100] animate-in fade-in zoom-in-95 duration-100">
+            <div className="absolute bottom-full mb-3 right-0 hidden md:group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl whitespace-nowrap z-[100] pointer-events-none animate-in fade-in zoom-in-95 duration-100">
               Send to AI
               <div className="absolute top-full right-6 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
             </div>

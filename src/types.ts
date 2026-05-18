@@ -75,6 +75,7 @@ export interface Message {
   content: string;
   timestamp: string;
   threadId: string;
+  read?: boolean;
 }
 
 export interface Developer {

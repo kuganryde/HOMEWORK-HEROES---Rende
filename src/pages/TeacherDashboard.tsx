@@ -351,7 +351,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             </div>
             <span className="font-bold">Assign New Task</span>
           </button>
-          <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
+          <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden md:group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
             Create tasks for individuals or the whole class
             <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
           </div>
@@ -535,7 +535,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         >
                           <X size={18} /> Reject
                         </button>
-                        <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
+                        <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden md:group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
                           Discard these changes
                           <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
                         </div>
@@ -548,7 +548,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         >
                           <Check size={18} /> Approve Changes
                         </button>
-                        <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
+                        <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden md:group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
                           Update student records officially
                           <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
                         </div>
@@ -619,7 +619,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                 >
                                   {h.priority}
                                 </span>
-                                <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-slate-800 text-white text-[9px] px-2 py-1 rounded shadow-xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in duration-100">
+                                <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden md:group-hover:block bg-slate-800 text-white text-[9px] px-2 py-1 rounded shadow-xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in duration-100">
                                   Task urgency level
                                 </div>
                               </div>
@@ -652,7 +652,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                   ></div>
                                 </div>
                                 {/* Progress Tooltip */}
-                                <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap text-center pointer-events-none animate-in fade-in zoom-in-95 duration-100">
+                                <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden md:group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap text-center pointer-events-none animate-in fade-in zoom-in-95 duration-100">
                                   Blue: Parents seen tasks
                                   <br />
                                   Green: Students finished

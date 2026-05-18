@@ -20,6 +20,7 @@ const App: React.FC = () => {
   const [homeworks, setHomeworks] = useState<Homework[]>([]);
   const [records, setRecords] = useState<HomeworkRecord[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   
   const festival = getCurrentFestival();
@@ -47,14 +48,24 @@ const App: React.FC = () => {
     const savedRecords = localStorage.getItem('bmc_records');
     const savedStudents = localStorage.getItem('bmc_students');
     
+    const loadMessages = () => {
+      const savedMessages = localStorage.getItem('bmc_messages');
+      if (savedMessages) setMessages(JSON.parse(savedMessages));
+    };
+
     if (savedHomework) setHomeworks(JSON.parse(savedHomework));
     if (savedRecords) setRecords(JSON.parse(savedRecords));
+    loadMessages();
+
     if (savedStudents) {
       setStudents(JSON.parse(savedStudents));
     } else {
       setStudents(MOCK_STUDENTS);
       localStorage.setItem('bmc_students', JSON.stringify(MOCK_STUDENTS));
     }
+
+    window.addEventListener('messages_updated', loadMessages);
+    return () => window.removeEventListener('messages_updated', loadMessages);
   }, []);
 
   const addHomework = (h: Omit<Homework, 'id'>) => {
@@ -335,6 +346,7 @@ const App: React.FC = () => {
         festivalTheme={festival?.themeColor}
         appTheme={appTheme}
         setAppTheme={setAppTheme}
+        hasUnreadMessages={messages.some(m => !m.read && m.receiverId === user.id)}
       >
         {isOffline && (
           <div className="bg-amber-100 border-l-4 border-amber-500 text-amber-800 p-4 mb-6 rounded-r-xl flex items-center shadow-sm">

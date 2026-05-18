@@ -421,7 +421,7 @@ const Settings: React.FC<SettingsProps> = ({ user, students, onProposeUpdate, on
                               <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-100">
                                 <ShieldAlert size={12} /> Awaiting Approval
                               </div>
-                              <div className="absolute bottom-full mb-2 right-0 hidden group-hover/tag:block bg-slate-900 text-white text-[9px] px-2 py-1 rounded shadow-xl whitespace-nowrap pointer-events-none animate-in fade-in duration-100">
+                              <div className="absolute bottom-full mb-2 right-0 hidden md:group-hover/tag:block bg-slate-900 text-white text-[9px] px-2 py-1 rounded shadow-xl whitespace-nowrap pointer-events-none animate-in fade-in duration-100">
                                 Teacher has not confirmed yet
                                 <div className="absolute top-full right-4 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
                               </div>
@@ -455,7 +455,7 @@ const Settings: React.FC<SettingsProps> = ({ user, students, onProposeUpdate, on
                           >
                             <Edit3 size={18} /> Edit Profile
                           </button>
-                          <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden group-hover/btn:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl whitespace-nowrap z-50 animate-in fade-in zoom-in-95 duration-100">
+                          <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden md:group-hover/btn:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl whitespace-nowrap z-50 pointer-events-none animate-in fade-in zoom-in-95 duration-100">
                             Modify name or class
                             <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
                           </div>
@@ -467,7 +467,7 @@ const Settings: React.FC<SettingsProps> = ({ user, students, onProposeUpdate, on
                           >
                             <Trash2 size={18} />
                           </button>
-                          <div className="absolute bottom-full mb-3 right-0 hidden group-hover/del:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl whitespace-nowrap z-50 animate-in fade-in zoom-in-95 duration-100">
+                          <div className="absolute bottom-full mb-3 right-0 hidden md:group-hover/del:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl whitespace-nowrap z-50 pointer-events-none animate-in fade-in zoom-in-95 duration-100">
                             Unlink student
                             <div className="absolute top-full right-4 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
                           </div>

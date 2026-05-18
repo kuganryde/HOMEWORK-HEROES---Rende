@@ -29,13 +29,34 @@ const Messages: React.FC<MessagesProps> = ({ user }) => {
           receiverId: 'p1',
           content: 'Hello Mr. Ramesh, I noticed Aswin has been doing great in Mathematics lately!',
           timestamp: new Date(Date.now() - 3600000).toISOString(),
-          threadId: 't1-p1'
+          threadId: 't1-p1',
+          read: false
         }
       ];
       setMessages(initial);
       localStorage.setItem('bmc_messages', JSON.stringify(initial));
+      window.dispatchEvent(new Event('messages_updated'));
     }
   }, []);
+
+  useEffect(() => {
+    if (selectedContactId && messages.length > 0) {
+      let changed = false;
+      const updatedMessages = messages.map(m => {
+        if (m.receiverId === user.id && m.senderId === selectedContactId && !m.read) {
+          changed = true;
+          return { ...m, read: true };
+        }
+        return m;
+      });
+      
+      if (changed) {
+        setMessages(updatedMessages);
+        localStorage.setItem('bmc_messages', JSON.stringify(updatedMessages));
+        window.dispatchEvent(new Event('messages_updated'));
+      }
+    }
+  }, [selectedContactId, messages, user.id]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -77,12 +98,14 @@ const Messages: React.FC<MessagesProps> = ({ user }) => {
       receiverId: selectedContactId,
       content: inputText.trim(),
       timestamp: new Date().toISOString(),
-      threadId: threadId
+      threadId: threadId,
+      read: false
     };
 
     const updated = [...messages, newMessage];
     setMessages(updated);
     localStorage.setItem('bmc_messages', JSON.stringify(updated));
+    window.dispatchEvent(new Event('messages_updated'));
     setInputText('');
   };
 
@@ -105,11 +128,13 @@ const Messages: React.FC<MessagesProps> = ({ user }) => {
           </div>
         </div>
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
-          {contacts.map(contact => (
+          {contacts.map(contact => {
+            const hasUnread = messages.some(m => m.receiverId === user.id && m.senderId === contact.id && !m.read);
+            return (
             <button
               key={contact.id}
               onClick={() => setSelectedContactId(contact.id)}
-              className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all ${
+              className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all relative ${
                 selectedContactId === contact.id ? 'bg-red-50 text-bmc-red' : 'hover:bg-slate-50 text-slate-600'
               }`}
             >
@@ -118,14 +143,17 @@ const Messages: React.FC<MessagesProps> = ({ user }) => {
               }`}>
                 <UserIcon size={20} />
               </div>
-                <div className="text-left overflow-hidden">
+                <div className="text-left overflow-hidden flex-1">
                   <p className="font-extrabold truncate text-sm">{contact.name}</p>
                   <p className="text-[11px] font-black uppercase tracking-widest opacity-80 truncate">
                     {isTeacher ? 'Parent' : 'Teacher'}
                   </p>
                 </div>
+                {hasUnread && (
+                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse mr-2" />
+                )}
             </button>
-          ))}
+          )})}
         </div>
       </div>
 
@@ -163,21 +191,21 @@ const Messages: React.FC<MessagesProps> = ({ user }) => {
                 <div className="flex items-center gap-3">
                   <div className="relative group">
                     <button className="p-3 text-slate-500 hover:bg-white/50 rounded-xl transition-colors"><Phone size={20} /></button>
-                    <div className="absolute bottom-full mb-3 right-0 hidden group-hover:block bg-slate-900 text-white text-[10px] font-black px-3 py-2 rounded-lg shadow-2xl whitespace-nowrap z-[100] animate-in fade-in duration-100">
+                    <div className="absolute bottom-full mb-3 right-0 hidden md:group-hover:block bg-slate-900 text-white text-[10px] font-black px-3 py-2 rounded-lg shadow-2xl whitespace-nowrap z-[100] pointer-events-none animate-in fade-in duration-100">
                       Voice Call
                       <div className="absolute top-full right-4 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
                     </div>
                   </div>
                   <div className="relative group">
                     <button className="p-3 text-slate-500 hover:bg-white/50 rounded-xl transition-colors"><Video size={20} /></button>
-                    <div className="absolute bottom-full mb-3 right-0 hidden group-hover:block bg-slate-900 text-white text-[10px] font-black px-3 py-2 rounded-lg shadow-2xl whitespace-nowrap z-[100] animate-in fade-in duration-100">
+                    <div className="absolute bottom-full mb-3 right-0 hidden md:group-hover:block bg-slate-900 text-white text-[10px] font-black px-3 py-2 rounded-lg shadow-2xl whitespace-nowrap z-[100] pointer-events-none animate-in fade-in duration-100">
                       Video Call
                       <div className="absolute top-full right-4 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
                     </div>
                   </div>
                   <div className="relative group">
                     <button className="p-3 text-slate-500 hover:bg-white/50 rounded-xl transition-colors"><Info size={20} /></button>
-                    <div className="absolute bottom-full mb-3 right-0 hidden group-hover:block bg-slate-900 text-white text-[10px] font-black px-3 py-2 rounded-lg shadow-2xl whitespace-nowrap z-[100] animate-in fade-in duration-100">
+                    <div className="absolute bottom-full mb-3 right-0 hidden md:group-hover:block bg-slate-900 text-white text-[10px] font-black px-3 py-2 rounded-lg shadow-2xl whitespace-nowrap z-[100] pointer-events-none animate-in fade-in duration-100">
                       Contact Info
                       <div className="absolute top-full right-4 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
                     </div>

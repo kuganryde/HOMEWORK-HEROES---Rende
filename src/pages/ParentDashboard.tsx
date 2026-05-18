@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   User,
   Student,
@@ -115,6 +115,27 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
     (h) => !getStatus(h.id).acknowledged,
   );
   const unacknowledgedCount = unacknowledgedHomeworks.length;
+
+  const studentsWithNewAlerts = useMemo(() => {
+    return myStudents.map(s => {
+      const studentHws = homeworks.filter(h => h.targetStudentIds.includes(s.id));
+      const unack = studentHws.filter(h => {
+        const record = records.find(r => r.homeworkId === h.id && r.studentId === s.id);
+        return !record?.acknowledged;
+      });
+      return { id: s.id, name: s.name, unackCount: unack.length };
+    }).filter(s => s.unackCount > 0);
+  }, [myStudents, homeworks, records]);
+
+  const [currentAlertIndex, setCurrentAlertIndex] = useState(0);
+
+  useEffect(() => {
+    if (studentsWithNewAlerts.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentAlertIndex(prev => (prev + 1) % studentsWithNewAlerts.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [studentsWithNewAlerts.length]);
 
   const handleAcknowledge = (
     hid: string,
@@ -280,24 +301,29 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
               Linked Students
             </p>
             <div className="flex gap-2 mt-1">
-              {myStudents.map((s) => (
+              {myStudents.map((s) => {
+                const hasPending = studentsWithNewAlerts.some(sa => sa.id === s.id);
+                return (
                 <div key={s.id} className="relative group">
                   <button
                     onClick={() => setSelectedStudent(s)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all relative ${
                       selectedStudent?.id === s.id
                         ? "bmc-blue text-white shadow-md"
                         : "bg-white/50 text-slate-600 hover:bg-white/80 border border-white/40"
-                    }`}
+                    } ${hasPending && selectedStudent?.id !== s.id ? "ring-2 ring-emerald-500 ring-offset-1 animate-pulse border-transparent" : ""} ${hasPending && selectedStudent?.id === s.id ? "ring-2 ring-emerald-400 ring-offset-2" : ""}`}
                   >
                     {s.name}
+                    {hasPending && (
+                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border border-white" />
+                    )}
                   </button>
-                  <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
+                  <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden md:group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
                     Switch to {s.name}'s tasks
                     <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
                   </div>
                 </div>
-              ))}
+              )})}
               {myStudents.length === 0 && (
                 <p className="text-xs text-slate-400 italic">
                   No students linked yet. Go to Settings.
@@ -307,15 +333,21 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
           </div>
         </div>
 
-        {unacknowledgedCount > 0 && (
-          <div className="bg-emerald-50/70 backdrop-blur-md p-4 rounded-2xl border border-emerald-200/40 flex items-center gap-4 text-emerald-800 shadow-sm">
-            <Bell className="animate-bounce" size={24} />
-            <div>
-              <p className="font-bold text-sm">New Assignment Alert</p>
-              <p className="text-xs">
-                Mdm. Kavitha added {unacknowledgedCount} new task
-                {unacknowledgedCount > 1 ? "s" : ""}.
-              </p>
+        {studentsWithNewAlerts.length > 0 && (
+          <div className="bg-emerald-50/70 backdrop-blur-md p-4 rounded-2xl border border-emerald-200/40 flex items-center gap-4 text-emerald-800 shadow-sm overflow-hidden min-w-[280px] shrink-0">
+            <Bell className="animate-bounce shrink-0" size={24} />
+            <div className="flex-1 relative h-[38px] min-w-[200px]">
+              {studentsWithNewAlerts.map((sa, idx) => (
+                <div 
+                  key={sa.id} 
+                  className={`absolute inset-0 transition-opacity duration-500 flex flex-col justify-center ${idx === currentAlertIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                >
+                  <p className="font-bold text-sm leading-tight">New Assignment Alert</p>
+                  <p className="text-xs truncate text-emerald-700/80">
+                    Mdm. Kavitha added {sa.unackCount} new task{sa.unackCount > 1 ? "s" : ""} for <span className="font-bold">{sa.name}</span>.
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -411,7 +443,7 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   return (
                     <div
                       key={h.id}
-                      className="bg-white/70 backdrop-blur-md rounded-2xl border border-white/40 shadow-sm overflow-hidden group"
+                      className="bg-white/70 backdrop-blur-md rounded-2xl border border-white/40 shadow-sm overflow-hidden"
                     >
                       <div
                         className={`h-1.5 w-full ${
@@ -442,7 +474,7 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
                                 <span className="inline-flex items-center gap-1.5 text-[11px] font-black text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full mt-1 shadow-sm">
                                   <CheckSquare size={12} /> Received by Parent
                                 </span>
-                                <div className="absolute bottom-full mb-3 right-0 hidden group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
+                                <div className="absolute bottom-full mb-3 right-0 hidden md:group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
                                   Teacher has been notified
                                   <div className="absolute top-full right-6 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
                                 </div>
@@ -461,7 +493,7 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
                                 >
                                   <Bell size={12} /> Acknowledge Receipt
                                 </button>
-                                <div className="absolute bottom-full mb-3 right-0 hidden group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
+                                <div className="absolute bottom-full mb-3 right-0 hidden md:group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
                                   Tap to confirm you've seen this
                                   <div className="absolute top-full right-6 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
                                 </div>
@@ -503,7 +535,7 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
                               >
                                 <Clock size={16} /> Pending
                               </button>
-                              <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
+                              <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden md:group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
                                 Not started yet
                                 <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
                               </div>
@@ -527,7 +559,7 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
                               >
                                 <Clock size={16} /> Ongoing
                               </button>
-                              <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
+                              <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden md:group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
                                 Student is working on it
                                 <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
                               </div>
@@ -551,7 +583,7 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
                               >
                                 <CheckCircle size={16} /> Done
                               </button>
-                              <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
+                              <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden md:group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
                                 Mark as finished
                                 <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
                               </div>
@@ -565,7 +597,7 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
                             >
                               <BrainCircuit size={18} /> Get AI Hints
                             </button>
-                            <div className="absolute bottom-full mb-3 right-0 hidden group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
+                            <div className="absolute bottom-full mb-3 right-0 hidden md:group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
                               Get clues to help your child (not answers)
                               <div className="absolute top-full right-6 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
                             </div>
@@ -648,7 +680,7 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     </span>
                   </div>
                 </label>
-                <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap text-center pointer-events-none animate-in fade-in zoom-in-95 duration-100">
+                <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden md:group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap text-center pointer-events-none animate-in fade-in zoom-in-95 duration-100">
                   Snap a worksheet photo
                   <br />
                   for an instant AI summary
@@ -673,7 +705,7 @@ const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 size={18}
                 className="text-slate-400 group-hover:translate-x-1 transition-transform"
               />
-              <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
+              <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden md:group-hover:block bg-slate-900 text-white text-[11px] font-black px-4 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100">
                 Ask Mdm. Kavitha a question
                 <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
               </div>

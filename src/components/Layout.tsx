@@ -14,9 +14,10 @@ interface LayoutProps {
   festivalTheme?: string;
   appTheme?: string;
   setAppTheme?: (theme: string) => void;
+  hasUnreadMessages?: boolean;
 }
 
-const Layout: React.FC<LayoutProps> = ({ user, onLogout, activeTab, setActiveTab, children, festivalTheme, appTheme = 'default', setAppTheme }) => {
+const Layout: React.FC<LayoutProps> = ({ user, onLogout, activeTab, setActiveTab, children, festivalTheme, appTheme = 'default', setAppTheme, hasUnreadMessages = false }) => {
   const isTeacher = user.role === UserRole.TEACHER;
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -120,22 +121,27 @@ const Layout: React.FC<LayoutProps> = ({ user, onLogout, activeTab, setActiveTab
                   setActiveTab(item.id);
                   if (window.innerWidth < 768) setIsMobileOpen(false);
                 }}
-                className={`w-full flex items-center ${(isCollapsed && !isMobileOpen) ? 'md:justify-center' : 'gap-4 px-5'} py-3.5 rounded-2xl transition-all border-2 border-transparent ${
+                className={`w-full flex items-center ${(isCollapsed && !isMobileOpen) ? 'md:justify-center' : 'gap-4 px-5'} py-3.5 rounded-2xl transition-all border-2 border-transparent relative ${
                   activeTab === item.id 
                     ? `bg-white text-slate-900 font-black shadow-xl scale-[1.02]` 
                     : 'text-white/80 hover:bg-white/10 hover:text-white'
                 }`}
               >
-                <div className={(isCollapsed && !isMobileOpen) ? '' : 'w-6 flex items-center justify-center shrink-0'}>
+                <div className={(isCollapsed && !isMobileOpen) ? 'relative' : 'w-6 flex items-center justify-center shrink-0 relative'}>
                   <item.icon size={22} />
+                  {item.id === 'messages' && hasUnreadMessages && (
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-white animate-pulse" />
+                  )}
                 </div>
                 {(!isCollapsed || isMobileOpen) && <span className="text-sm tracking-tight truncate">{item.label}</span>}
               </button>
               {/* Tooltip */}
-              <div className={`absolute left-full ml-5 top-1/2 -translate-y-1/2 hidden md:group-hover:block bg-slate-900 text-white text-[11px] font-black px-3 py-2 rounded-xl shadow-2xl whitespace-nowrap z-[100] border border-white/10 pointer-events-none animate-in fade-in zoom-in-95 duration-100 ${(isCollapsed && !isMobileOpen) ? 'ml-3' : 'ml-5'}`}>
-                {(isCollapsed && !isMobileOpen) ? item.label : item.hint}
-                <div className="absolute top-1/2 -left-1.5 -translate-y-1/2 w-3 h-3 bg-slate-900 rotate-45 border-l border-b border-white/10" />
-              </div>
+              {(isCollapsed && !isMobileOpen) && (
+                <div className={`absolute left-full ml-3 top-1/2 -translate-y-1/2 hidden md:group-hover:block bg-slate-900 text-white text-[11px] font-black px-3 py-2 rounded-xl shadow-2xl whitespace-nowrap z-[100] border border-white/10 pointer-events-none animate-in fade-in zoom-in-95 duration-100`}>
+                  {item.label}
+                  <div className="absolute top-1/2 -left-1.5 -translate-y-1/2 w-3 h-3 bg-slate-900 rotate-45 border-l border-b border-white/10" />
+                </div>
+              )}
             </div>
           ))}
         </nav>
@@ -192,7 +198,7 @@ const Layout: React.FC<LayoutProps> = ({ user, onLogout, activeTab, setActiveTab
             ) : (
               <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center font-bold text-lg cursor-help group relative mx-auto">
                  {user.name.charAt(0)}
-                 <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 hidden md:group-hover:block bg-slate-900 text-white text-[11px] font-black px-3 py-2 rounded-xl shadow-2xl whitespace-nowrap z-[100] border border-white/10">
+                 <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 hidden md:group-hover:block bg-slate-900 text-white text-[11px] font-black px-3 py-2 rounded-xl shadow-2xl whitespace-nowrap z-[100] border border-white/10 pointer-events-none animate-in fade-in zoom-in-95 duration-100">
                    {user.name} ({user.role})
                    <div className="absolute top-1/2 -left-1.5 -translate-y-1/2 w-3 h-3 bg-slate-900 rotate-45 border-l border-b border-white/10" />
                  </div>
