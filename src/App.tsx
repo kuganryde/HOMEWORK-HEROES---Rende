@@ -174,8 +174,10 @@ const App: React.FC = () => {
       <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-slate-50 gap-6">
         
         {/* Login Screen Banner */}
-        <div className="w-full max-w-lg md:max-w-xl rounded-2xl md:rounded-[32px] overflow-hidden flex items-center justify-center">
-          <img src="https://i.ibb.co/9Hx5SWTG/Web-Banner.png" alt="Announcement Banner" className="w-full h-auto object-contain" />
+        <div className="w-full max-w-lg md:max-w-xl hero-glow-wrapper shadow-xl shadow-red-500/10">
+          <div className="hero-glow-content flex items-center justify-center bg-transparent">
+            <img src="https://i.ibb.co/9Hx5SWTG/Web-Banner.png" alt="Announcement Banner" className="w-full h-auto object-contain" />
+          </div>
         </div>
 
         <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 flex flex-col items-center">

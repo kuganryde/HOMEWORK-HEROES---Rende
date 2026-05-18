@@ -228,8 +228,10 @@ const Layout: React.FC<LayoutProps> = ({ user, onLogout, activeTab, setActiveTab
       <main className="flex-1 p-4 md:p-8 overflow-y-auto">
         
         {/* Global Banner */}
-        <div className="w-full mb-6 md:mb-8 rounded-2xl md:rounded-[32px] overflow-hidden flex items-center justify-center max-w-[800px] mx-auto">
-          <img src="https://i.ibb.co/9Hx5SWTG/Web-Banner.png" alt="Announcement Banner" className="w-full h-auto object-contain" />
+        <div className="w-full mb-6 md:mb-8 max-w-[800px] mx-auto hero-glow-wrapper shadow-xl shadow-red-500/10">
+          <div className="hero-glow-content flex items-center justify-center">
+            <img src="https://i.ibb.co/9Hx5SWTG/Web-Banner.png" alt="Announcement Banner" className="w-full h-auto object-contain" />
+          </div>
         </div>
 
         <header className="mb-8 hidden md:block">
