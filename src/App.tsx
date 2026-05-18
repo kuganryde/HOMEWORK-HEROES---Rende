@@ -7,7 +7,7 @@ import TeacherDashboard from '@/pages/TeacherDashboard';
 import ParentDashboard from '@/pages/ParentDashboard';
 import Messages from '@/pages/Messages';
 import Settings from '@/pages/Settings';
-import { LogIn, GraduationCap } from 'lucide-react';
+import { LogIn, GraduationCap, WifiOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getCurrentFestival } from '@/services/FestivalService';
 import FestivalGraphic from '@/components/FestivalGraphic';
@@ -20,7 +20,21 @@ const App: React.FC = () => {
   const [homeworks, setHomeworks] = useState<Homework[]>([]);
   const [records, setRecords] = useState<HomeworkRecord[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  
   const festival = getCurrentFestival();
+
+  // Network listener
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Birthday check
   const today = new Date();
@@ -312,19 +326,30 @@ const App: React.FC = () => {
   };
 
   return (
-    <Layout 
-      user={user} 
-      onLogout={() => setUser(null)} 
-      activeTab={activeTab} 
-      setActiveTab={setActiveTab}
-      festivalTheme={festival?.themeColor}
-      appTheme={appTheme}
-      setAppTheme={setAppTheme}
-    >
-      {renderContent()}
-      <FestivalGraphic />
-      {birthdayStudent && <BirthdayCelebration studentName={birthdayStudent.name} />}
-    </Layout>
+    <>
+      <Layout 
+        user={user} 
+        onLogout={() => setUser(null)} 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab}
+        festivalTheme={festival?.themeColor}
+        appTheme={appTheme}
+        setAppTheme={setAppTheme}
+      >
+        {isOffline && (
+          <div className="bg-amber-100 border-l-4 border-amber-500 text-amber-800 p-4 mb-6 rounded-r-xl flex items-center shadow-sm">
+            <WifiOff className="mr-3 text-amber-500" size={24} />
+            <div>
+              <p className="font-bold">You are currently offline</p>
+              <p className="text-sm">The app is using cached data. Your changes will sync when you regain connection.</p>
+            </div>
+          </div>
+        )}
+        {renderContent()}
+        <FestivalGraphic />
+        {birthdayStudent && <BirthdayCelebration studentName={birthdayStudent.name} />}
+      </Layout>
+    </>
   );
 };
 
