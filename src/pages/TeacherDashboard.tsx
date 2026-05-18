@@ -581,7 +581,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                   </span>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full min-w-[700px]">
                     <thead>
                       <tr className="bg-slate-50/50 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">
                         <th className="px-6 py-4">Subject & Title</th>
@@ -717,7 +717,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                   </div>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full min-w-[700px]">
                     <thead>
                       <tr className="bg-slate-50/50 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">
                         <th className="px-6 py-4">Student Name</th>
