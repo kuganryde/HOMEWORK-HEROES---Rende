@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { User, UserRole } from '@/types';
 import { SCHOOL_INFO } from '@/constants';
-import { LayoutDashboard, BookOpen, MessageSquare, Sparkles, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, BookOpen, MessageSquare, Sparkles, Settings, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CapedBook } from '@/components/HeroMascot';
 import { Theme3DObject } from '@/components/Theme3DObject';
 
@@ -18,6 +18,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ user, onLogout, activeTab, setActiveTab, children, festivalTheme, appTheme = 'default', setAppTheme }) => {
   const isTeacher = user.role === UserRole.TEACHER;
+  const [isCollapsed, setIsCollapsed] = useState(false);
   
   // Determine base theme class based on appTheme
   let baseThemeClass = 'bmc-red';
@@ -41,76 +42,124 @@ const Layout: React.FC<LayoutProps> = ({ user, onLogout, activeTab, setActiveTab
   return (
     <div className="flex flex-col md:flex-row min-h-screen mesh-bg">
       {/* Sidebar - Desktop */}
-      <aside className={`hidden md:flex flex-col w-64 ${themeClass} text-white p-6 sticky top-0 h-screen transition-colors duration-1000 z-50`}>
-        <div className="flex items-center gap-3 mb-10 relative">
+      <aside className={`hidden md:flex flex-col ${themeClass} text-white p-6 sticky top-0 h-screen transition-all duration-500 z-50 ${isCollapsed ? 'w-24 items-center px-4' : 'w-64'}`}>
+        <div className={`flex items-center gap-3 mb-10 relative ${isCollapsed ? 'justify-center' : ''}`}>
           <img 
             src={SCHOOL_INFO.logoUrl} 
             alt="Logo" 
             className="w-14 h-14 drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)] object-contain relative z-10" 
           />
-          <h1 className="font-bold text-lg leading-tight relative z-10">Homework<br/>Hero</h1>
+          {!isCollapsed && <h1 className="font-bold text-lg leading-tight relative z-10">Homework<br/>Hero</h1>}
           {appTheme === 'default' ? (
-            <div className="absolute -top-4 -right-4 rotate-12 drop-shadow-xl z-10">
+            <div className={`absolute ${isCollapsed ? '-top-2 -right-2 scale-75' : '-top-4 -right-4'} rotate-12 drop-shadow-xl z-10 transition-all`}>
               <CapedBook size={48} />
             </div>
           ) : (
-            <Theme3DObject theme={appTheme} />
+            <div className={`${isCollapsed ? 'hidden' : 'block'}`}>
+              <Theme3DObject theme={appTheme} />
+            </div>
           )}
         </div>
 
-        <nav className="flex-1 space-y-3 relative z-10">
+        <nav className="flex-1 space-y-3 relative z-10 w-full">
           {navItems.map((item) => (
-            <div key={item.id} className="relative group">
+            <div key={item.id} className="relative group w-full">
               <button
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all border-2 border-transparent ${
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-4 px-5'} py-3.5 rounded-2xl transition-all border-2 border-transparent ${
                   activeTab === item.id 
                     ? `bg-white ${festivalTheme ? 'text-slate-900' : 'text-slate-900'} font-black shadow-xl scale-[1.02]` 
                     : 'text-white/80 hover:bg-white/10 hover:text-white'
                 }`}
               >
-                <item.icon size={22} />
-                <span className="text-sm tracking-tight">{item.label}</span>
+                <item.icon size={22} className={isCollapsed ? 'shrink-0' : ''} />
+                {!isCollapsed && <span className="text-sm tracking-tight truncate">{item.label}</span>}
               </button>
               {/* Tooltip */}
-              <div className="absolute left-full ml-5 top-1/2 -translate-y-1/2 hidden group-hover:block bg-slate-900 text-white text-[11px] font-black px-3 py-2 rounded-xl shadow-2xl whitespace-nowrap z-[100] border border-white/10 pointer-events-none animate-in fade-in zoom-in-95 duration-100">
-                {item.hint}
+              <div className={`absolute left-full ml-5 top-1/2 -translate-y-1/2 hidden group-hover:block bg-slate-900 text-white text-[11px] font-black px-3 py-2 rounded-xl shadow-2xl whitespace-nowrap z-[100] border border-white/10 pointer-events-none animate-in fade-in zoom-in-95 duration-100 ${isCollapsed ? 'ml-3' : 'ml-5'}`}>
+                {isCollapsed ? item.label : item.hint}
                 <div className="absolute top-1/2 -left-1.5 -translate-y-1/2 w-3 h-3 bg-slate-900 rotate-45 border-l border-b border-white/10" />
               </div>
             </div>
           ))}
         </nav>
 
-        <div className="mt-auto pt-6 border-t border-white/20 relative z-10">
+        <div className="mt-auto pt-6 border-t border-white/20 relative z-10 w-full">
+          <div className="mb-4 flex flex-col items-center">
+            {!isCollapsed && <label className="text-[10px] font-black uppercase tracking-widest text-white/50 mb-1 w-full text-left">App Theme</label>}
+            {isCollapsed ? (
+              <div className="group relative">
+                 <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-white/20 transition-all">
+                   <Sparkles size={18} />
+                 </div>
+                 <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 hidden group-hover:block bg-slate-900 text-white text-[11px] px-3 py-2 rounded-xl shadow-2xl whitespace-nowrap z-[100] border border-white/10">
+                   <div className="space-y-1">
+                      <p className="font-black text-white/50 text-[9px] uppercase tracking-widest mb-2">Change Theme</p>
+                      {[
+                        {v: 'default', l: 'Default'},
+                        {v: 'science', l: 'Science'},
+                        {v: 'math', l: 'Math'},
+                        {v: 'history', l: 'History'},
+                        {v: 'english', l: 'English'},
+                        {v: 'sports', l: 'Sports'},
+                      ].map(t => (
+                        <div key={t.v} onClick={() => setAppTheme?.(t.v)} className="cursor-pointer hover:text-bmc-yellow transition-colors font-bold">{t.l}</div>
+                      ))}
+                   </div>
+                   <div className="absolute top-1/2 -left-1.5 -translate-y-1/2 w-3 h-3 bg-slate-900 rotate-45 border-l border-b border-white/10" />
+                 </div>
+              </div>
+            ) : (
+              <select 
+                value={appTheme}
+                onChange={(e) => setAppTheme && setAppTheme(e.target.value)}
+                className="w-full bg-white/10 border border-white/20 text-white text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-white/30 appearance-none cursor-pointer"
+              >
+                <option value="default" className="text-slate-900">Default (Hero)</option>
+                <option value="science" className="text-slate-900">The Laboratory (Science)</option>
+                <option value="math" className="text-slate-900">The Equation Pro (Math)</option>
+                <option value="history" className="text-slate-900">The Legacy (History)</option>
+                <option value="english" className="text-slate-900">The Lexicon (English)</option>
+                <option value="sports" className="text-slate-900">The MVP (Sports)</option>
+              </select>
+            )}
+          </div>
           <div className="mb-4">
-            <label className="text-[10px] font-black uppercase tracking-widest text-white/50 mb-1 block">App Theme</label>
-            <select 
-              value={appTheme}
-              onChange={(e) => setAppTheme && setAppTheme(e.target.value)}
-              className="w-full bg-white/10 border border-white/20 text-white text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-white/30 appearance-none cursor-pointer"
+            {!isCollapsed ? (
+              <>
+                <p className="text-xs text-white/70">Logged in as</p>
+                <p className="font-medium truncate">{user.name}</p>
+                <p className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full inline-block mt-1">
+                  {user.role}
+                </p>
+              </>
+            ) : (
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center font-bold text-lg cursor-help group relative">
+                 {user.name.charAt(0)}
+                 <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 hidden group-hover:block bg-slate-900 text-white text-[11px] font-black px-3 py-2 rounded-xl shadow-2xl whitespace-nowrap z-[100] border border-white/10">
+                   {user.name} ({user.role})
+                   <div className="absolute top-1/2 -left-1.5 -translate-y-1/2 w-3 h-3 bg-slate-900 rotate-45 border-l border-b border-white/10" />
+                 </div>
+              </div>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={onLogout}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl hover:bg-white/10 transition-all text-white/90 ${isCollapsed ? 'px-2' : ''}`}
+              title="Sign Out"
             >
-              <option value="default" className="text-slate-900">Default (Hero)</option>
-              <option value="science" className="text-slate-900">The Laboratory (Science)</option>
-              <option value="math" className="text-slate-900">The Equation Pro (Math)</option>
-              <option value="history" className="text-slate-900">The Legacy (History)</option>
-              <option value="english" className="text-slate-900">The Lexicon (English)</option>
-              <option value="sports" className="text-slate-900">The MVP (Sports)</option>
-            </select>
+              <LogOut size={20} />
+              {!isCollapsed && <span>Sign Out</span>}
+            </button>
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="px-3 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-all text-white/90 flex items-center justify-center"
+              title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+            >
+              {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+            </button>
           </div>
-          <div className="mb-4">
-            <p className="text-xs text-white/70">Logged in as</p>
-            <p className="font-medium truncate">{user.name}</p>
-            <p className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full inline-block mt-1">
-              {user.role}
-            </p>
-          </div>
-          <button
-            onClick={onLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 transition-all text-white/90"
-          >
-            <LogOut size={20} />
-            <span>Sign Out</span>
-          </button>
         </div>
       </aside>
 
