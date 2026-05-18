@@ -126,7 +126,9 @@ const Layout: React.FC<LayoutProps> = ({ user, onLogout, activeTab, setActiveTab
                     : 'text-white/80 hover:bg-white/10 hover:text-white'
                 }`}
               >
-                <item.icon size={22} className={(isCollapsed && !isMobileOpen) ? 'shrink-0' : ''} />
+                <div className={(isCollapsed && !isMobileOpen) ? '' : 'w-6 flex items-center justify-center shrink-0'}>
+                  <item.icon size={22} />
+                </div>
                 {(!isCollapsed || isMobileOpen) && <span className="text-sm tracking-tight truncate">{item.label}</span>}
               </button>
               {/* Tooltip */}
@@ -140,7 +142,7 @@ const Layout: React.FC<LayoutProps> = ({ user, onLogout, activeTab, setActiveTab
 
         <div className="mt-auto pt-6 border-t border-white/20 relative z-10 w-full">
           <div className="mb-4 flex flex-col items-center">
-            {(!isCollapsed || isMobileOpen) && <label className="text-[10px] font-black uppercase tracking-widest text-white/50 mb-1 w-full text-left">App Theme</label>}
+            {(!isCollapsed || isMobileOpen) && <label className="text-[10px] font-black uppercase tracking-widest text-white/50 mb-1 w-full flex items-center gap-4 px-5">App Theme</label>}
             {(isCollapsed && !isMobileOpen) ? (
               <div className="group relative">
                  <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-white/20 transition-all">
@@ -167,7 +169,7 @@ const Layout: React.FC<LayoutProps> = ({ user, onLogout, activeTab, setActiveTab
               <select 
                 value={appTheme}
                 onChange={(e) => setAppTheme && setAppTheme(e.target.value)}
-                className="w-full bg-white/10 border border-white/20 text-white text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-white/30 appearance-none cursor-pointer"
+                className="w-full bg-white/10 border border-white/20 text-white text-xs rounded-xl px-5 py-3 outline-none focus:ring-2 focus:ring-white/30 appearance-none cursor-pointer"
               >
                 <option value="default" className="text-slate-900">Default (Hero)</option>
                 <option value="science" className="text-slate-900">The Laboratory (Science)</option>
@@ -180,15 +182,15 @@ const Layout: React.FC<LayoutProps> = ({ user, onLogout, activeTab, setActiveTab
           </div>
           <div className="mb-4">
             {(!isCollapsed || isMobileOpen) ? (
-              <>
+              <div className="px-5">
                 <p className="text-xs text-white/70">Logged in as</p>
                 <p className="font-medium truncate">{user.name}</p>
                 <p className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full inline-block mt-1">
                   {user.role}
                 </p>
-              </>
+              </div>
             ) : (
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center font-bold text-lg cursor-help group relative">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center font-bold text-lg cursor-help group relative mx-auto">
                  {user.name.charAt(0)}
                  <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 hidden md:group-hover:block bg-slate-900 text-white text-[11px] font-black px-3 py-2 rounded-xl shadow-2xl whitespace-nowrap z-[100] border border-white/10">
                    {user.name} ({user.role})
@@ -197,21 +199,26 @@ const Layout: React.FC<LayoutProps> = ({ user, onLogout, activeTab, setActiveTab
               </div>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2">
             <button
               onClick={onLogout}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl hover:bg-white/10 transition-all text-white/90 ${(isCollapsed && !isMobileOpen) ? 'px-2' : ''}`}
+              className={`w-full flex items-center ${(isCollapsed && !isMobileOpen) ? 'md:justify-center' : 'gap-4 px-5'} py-3.5 rounded-2xl hover:bg-white/10 transition-all text-white/90`}
               title="Sign Out"
             >
-              <LogOut size={20} />
-              {(!isCollapsed || isMobileOpen) && <span>Sign Out</span>}
+              <div className={(isCollapsed && !isMobileOpen) ? '' : 'w-6 flex items-center justify-center shrink-0'}>
+                <LogOut size={22} />
+              </div>
+              {(!isCollapsed || isMobileOpen) && <span className="text-sm tracking-tight truncate">Sign Out</span>}
             </button>
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="hidden md:flex px-3 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-all text-white/90 items-center justify-center"
+              className={`hidden md:flex w-full items-center ${(isCollapsed && !isMobileOpen) ? 'md:justify-center' : 'gap-4 px-5'} py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 transition-all text-white/90`}
               title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
             >
-              {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+              <div className={(isCollapsed && !isMobileOpen) ? '' : 'w-6 flex items-center justify-center shrink-0'}>
+                {isCollapsed ? <ChevronRight size={22} /> : <ChevronLeft size={22} />}
+              </div>
+              {!isCollapsed && <span className="text-sm tracking-tight truncate">Collapse Sidebar</span>}
             </button>
           </div>
         </div>
